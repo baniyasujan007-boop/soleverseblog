@@ -1,0 +1,10 @@
+import { useEffect, useState } from "react";
+import Button from "../../components/common/Button/Button";
+import NewsCard from "../../components/LatestNews/NewsCard";
+import api from "../../api/axios";
+
+export default function News() {
+  const [articles, setArticles] = useState([]), [search, setSearch] = useState(""), [page, setPage] = useState(1), [meta, setMeta] = useState({ totalPages: 1 }), [loading, setLoading] = useState(true);
+  useEffect(() => { const timer = setTimeout(async () => { setLoading(true); try { const { data } = await api.get("/articles", { params: { search, page, limit: 9, sort: "newest", status: "published" } }); setArticles(data.data); setMeta(data); } finally { setLoading(false); } }, 250); return () => clearTimeout(timer); }, [search, page]);
+  return <main><section className="bg-gray-100 py-20"><div className="mx-auto max-w-7xl px-6"><h1 className="text-5xl font-black">Latest Sneaker News</h1><p className="mt-4 text-lg text-gray-500">Discover the latest sneaker news, release announcements, collaborations, and industry updates.</p></div></section><section className="mx-auto max-w-7xl px-6 py-10"><input value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} placeholder="Search articles..." className="w-full rounded-xl border px-5 py-4 outline-none focus:ring-2 focus:ring-red-600"/>{loading ? <p className="py-16 text-center text-gray-500">Loading news…</p> : <div className="mt-10 grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">{articles.map((article) => <NewsCard key={article._id} article={article}/>)}</div>}{!loading && !articles.length && <p className="py-16 text-center text-gray-500">No published articles found.</p>}{meta.totalPages > 1 && <div className="mt-16 flex justify-center gap-3"><Button disabled={page === 1} onClick={() => setPage(page - 1)} variant="secondary">Previous</Button><Button>{page}</Button><Button disabled={page === meta.totalPages} onClick={() => setPage(page + 1)} variant="secondary">Next →</Button></div>}</section></main>;
+}

@@ -1,0 +1,13 @@
+import express from "express";
+import { protect, admin } from "../middleware/authMiddleware.js";
+import upload from "../middleware/uploadMiddleware.js";
+import { listContent, listPublishedContent, getPublishedContent, createContent, updateContent, deleteContent } from "../controllers/contentController.js";
+const router = express.Router();
+router.get("/public/:type", listPublishedContent);
+router.get("/public/:type/:id", getPublishedContent);
+router.use(protect, admin);
+router.get("/:type", listContent);
+router.post("/:type", upload.single("image"), createContent);
+router.put("/:type/:id", upload.single("image"), updateContent);
+router.delete("/:type/:id", deleteContent);
+export default router;

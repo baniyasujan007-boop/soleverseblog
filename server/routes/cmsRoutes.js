@@ -1,0 +1,16 @@
+import express from "express";
+import { protect, admin } from "../middleware/authMiddleware.js";
+import upload from "../middleware/uploadMiddleware.js";
+import { listAuthors, createAuthor, updateAuthor, deleteAuthor, listMedia, uploadMedia, deleteMedia, listSubscribers, createSubscriber, updateSubscriber, deleteSubscriber, getSettings, updateSettings, getHomepage, subscribePublic } from "../controllers/cmsController.js";
+const router = express.Router();
+router.get("/public/homepage", getHomepage);
+router.post("/public/subscribe", subscribePublic);
+router.use(protect, admin);
+router.route("/authors").get(listAuthors).post(upload.single("avatar"), createAuthor);
+router.route("/authors/:id").put(upload.single("avatar"), updateAuthor).delete(deleteAuthor);
+router.route("/media").get(listMedia).post(upload.single("file"), uploadMedia);
+router.delete("/media/:id", deleteMedia);
+router.route("/subscribers").get(listSubscribers).post(createSubscriber);
+router.route("/subscribers/:id").put(updateSubscriber).delete(deleteSubscriber);
+router.route("/settings").get(getSettings).put(upload.single("logo"), updateSettings);
+export default router;
