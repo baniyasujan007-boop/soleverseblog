@@ -2,7 +2,7 @@ import { useState } from "react";
 import { FiMail } from "react-icons/fi";
 import api from "../../api/axios";
 
-export default function Newsletter({ settings = {}, sectionSettings = {} }) {
+export default function Newsletter({ settings = {} }) {
   const [email, setEmail] = useState(""); const [message, setMessage] = useState("");
   if (!settings.enabled) return null;
   const submit = async (event) => { event.preventDefault(); try { await api.post("/cms/public/subscribe", { email }); setMessage("You’re on the list."); setEmail(""); } catch (error) { setMessage(error.response?.data?.message || "Please try again."); } };
