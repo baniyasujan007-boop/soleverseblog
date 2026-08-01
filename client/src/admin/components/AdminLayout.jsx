@@ -32,7 +32,7 @@ const links = [
   ["/admin/users", "Users", FiUsers],
   ["/admin/newsletter", "Newsletter", FiBell],
   ["/admin/calendar", "Analytics", FiCalendar],
-  ["/admin/categories", "SEO", FiTag],
+  ["/admin/categories", "Categories", FiTag],
   ["/admin/settings", "Settings", FiSettings],
 ];
 const homepageLinks = [

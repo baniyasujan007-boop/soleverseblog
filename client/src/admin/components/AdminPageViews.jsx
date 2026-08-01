@@ -488,127 +488,235 @@ export function Articles() {
 }
 
 export function Categories() {
-  const [categories, setCategories] = useState([]),
-    [name, setName] = useState(""),
-    [editing, setEditing] = useState(null),
-    [loading, setLoading] = useState(true);
+  const [categories, setCategories] = useState([]);
+  const [search, setSearch] = useState("");
+  const [modal, setModal] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [name, setName] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [loadError, setLoadError] = useState("");
+  const [formError, setFormError] = useState("");
+  const [deleteError, setDeleteError] = useState("");
   const toast = useToast();
-  const load = useCallback(
-    () =>
-      api
-        .get("/categories")
-        .then(({ data }) => setCategories(data.data))
-        .catch(() => toast("Could not load categories", "error"))
-        .finally(() => setLoading(false)),
-    [toast],
-  );
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const { data } = await api.get("/categories");
+      setCategories(data.data);
+      setLoadError("");
+    } catch (err) {
+      const message = err.response?.data?.message || "Could not load categories";
+      setLoadError(message);
+      toast(message, "error");
+    } finally {
+      setLoading(false);
+    }
+  }, [toast]);
   useEffect(() => {
-    load();
-  }, [load]);
+    let active = true;
+    api
+      .get("/categories")
+      .then(({ data }) => {
+        if (!active) return;
+        setCategories(data.data);
+        setLoadError("");
+      })
+      .catch((err) => {
+        if (!active) return;
+        const message = err.response?.data?.message || "Could not load categories";
+        setLoadError(message);
+        toast(message, "error");
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [toast]);
+
+  const openModal = (category = null) => {
+    setModal(category || {});
+    setName(category?.name || "");
+    setFormError("");
+  };
+
+  const closeModal = () => {
+    if (saving) return;
+    setModal(null);
+    setName("");
+    setFormError("");
+  };
+
   const save = async (event) => {
     event.preventDefault();
+    if (saving) return;
+    const trimmedName = name.trim();
+    if (!trimmedName) {
+      setFormError("Category name is required.");
+      return;
+    }
+    setSaving(true);
+    setFormError("");
     try {
-      if (editing) await api.put(`/categories/${editing._id}`, { name });
-      else await api.post("/categories", { name });
-      toast(editing ? "Category updated" : "Category created");
+      if (modal._id) await api.put(`/categories/${modal._id}`, { name: trimmedName });
+      else await api.post("/categories", { name: trimmedName });
+      toast(modal._id ? "Category updated" : "Category created");
+      setModal(null);
       setName("");
-      setEditing(null);
-      load();
+      await load();
     } catch (err) {
-      toast(err.response?.data?.message || "Could not save category", "error");
+      const message = err.response?.data?.message || "Could not save category";
+      setFormError(message);
+      toast(message, "error");
+    } finally {
+      setSaving(false);
     }
   };
-  const remove = async (category) => {
-    if (!window.confirm(`Delete “${category.name}”?`)) return;
+
+  const remove = async () => {
+    if (!deleteTarget || deleting) return;
+    setDeleting(true);
+    setDeleteError("");
     try {
-      await api.delete(`/categories/${category._id}`);
+      await api.delete(`/categories/${deleteTarget._id}`);
       toast("Category deleted");
-      load();
+      setDeleteTarget(null);
+      await load();
     } catch (err) {
-      toast(
-        err.response?.data?.message || "Could not delete category",
-        "error",
-      );
+      const message = err.response?.data?.message || "Could not delete category";
+      setDeleteError(message);
+      toast(message, "error");
+    } finally {
+      setDeleting(false);
     }
   };
+
+  const filteredCategories = categories.filter((category) =>
+    `${category.name} ${category.slug}`.toLowerCase().includes(search.trim().toLowerCase()),
+  );
+  const busy = saving || deleting || loading;
+
   return (
     <>
       <PageTitle
         title="Categories"
         text="Create and organize article categories."
+        action={
+          <Button
+            type="button"
+            onClick={() => openModal()}
+            disabled={busy}
+            className="bg-indigo-600 text-white"
+          >
+            <FiPlus /> Add category
+          </Button>
+        }
       />
-      <div className="grid gap-6 lg:grid-cols-[360px_1fr]">
-        <form
-          onSubmit={save}
-          className="h-fit rounded-2xl border border-slate-200 bg-white p-5"
-        >
-          <h3 className="font-bold">
-            {editing ? "Edit category" : "New category"}
-          </h3>
+      <div className="mb-5 rounded-2xl border border-slate-200 bg-white p-3">
+        <label className="relative block">
+          <FiSearch className="absolute left-3 top-3 text-slate-400" />
           <input
-            required
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="e.g. Sneaker news"
-            className="field"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Search categories"
+            className="w-full rounded-xl border border-slate-200 py-2.5 pl-10 pr-3 text-sm"
           />
-          <div className="mt-4 flex gap-2">
-            <Button className="bg-indigo-600 text-white">
-              {editing ? "Save changes" : "Add category"}
-            </Button>
-            {editing && (
-              <Button
-                type="button"
-                onClick={() => {
-                  setEditing(null);
-                  setName("");
-                }}
-                className="border border-slate-200"
-              >
-                Cancel
-              </Button>
-            )}
-          </div>
-        </form>
+        </label>
+      </div>
+
+      {loadError ? (
+        <div className="rounded-2xl border border-rose-200 bg-rose-50 p-5 text-sm text-rose-700">
+          <p>{loadError}</p>
+          <Button type="button" onClick={load} disabled={loading} className="mt-3 border border-rose-200">
+            Try again
+          </Button>
+        </div>
+      ) : (
         <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
           {loading ? (
             <Loader />
-          ) : categories.length ? (
-            <div className="divide-y divide-slate-100">
-              {categories.map((category) => (
-                <div
-                  key={category._id}
-                  className="flex items-center justify-between px-5 py-4"
-                >
-                  <div>
-                    <p className="font-semibold">{category.name}</p>
-                    <p className="text-xs text-slate-500">/{category.slug}</p>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      onClick={() => {
-                        setEditing(category);
-                        setName(category.name);
-                      }}
-                      className="border border-slate-200"
-                    >
-                      Edit
-                    </Button>
-                    <Button
-                      onClick={() => remove(category)}
-                      className="text-rose-600 hover:bg-rose-50"
-                    >
-                      Delete
-                    </Button>
-                  </div>
-                </div>
-              ))}
+          ) : filteredCategories.length ? (
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[600px] text-left text-sm">
+                <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+                  <tr>
+                    <th className="px-5 py-3">Name</th>
+                    <th className="px-5 py-3">Slug</th>
+                    <th className="px-5 py-3 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {filteredCategories.map((category) => (
+                    <tr key={category._id}>
+                      <td className="px-5 py-4 font-semibold text-slate-900">{category.name}</td>
+                      <td className="px-5 py-4 text-slate-500">/{category.slug}</td>
+                      <td className="px-5 py-4">
+                        <div className="flex justify-end gap-2">
+                          <Button type="button" onClick={() => openModal(category)} disabled={busy} className="border border-slate-200">
+                            <FiEdit2 /> Edit
+                          </Button>
+                          <Button type="button" onClick={() => { setDeleteTarget(category); setDeleteError(""); }} disabled={busy} className="text-rose-600 hover:bg-rose-50">
+                            <FiTrash2 /> Delete
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           ) : (
-            <Empty>No categories yet.</Empty>
+            <Empty>{search ? "No categories match your search." : "No categories yet."}</Empty>
           )}
         </div>
-      </div>
+      )}
+
+      {modal !== null && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/50 p-3 sm:p-8">
+          <form onSubmit={save} className="mx-auto mt-12 w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl sm:p-7">
+            <div className="mb-6 flex items-center justify-between gap-4">
+              <div>
+                <h3 className="text-xl font-black">{modal._id ? "Edit category" : "Add category"}</h3>
+                <p className="mt-1 text-sm text-slate-500">Use a clear, unique name for article organization.</p>
+              </div>
+              <button type="button" onClick={closeModal} disabled={saving} className="text-sm text-slate-500 disabled:opacity-50">Cancel</button>
+            </div>
+            {formError && <p className="mb-4 rounded-xl bg-rose-50 p-3 text-sm text-rose-700" role="alert">{formError}</p>}
+            <label className="block text-sm font-medium">
+              Category name
+              <input
+                required
+                autoFocus
+                value={name}
+                onChange={(event) => { setName(event.target.value); setFormError(""); }}
+                placeholder="e.g. Sneaker news"
+                className="field mt-1.5"
+              />
+            </label>
+            <div className="mt-6 flex justify-end gap-3">
+              <Button type="button" onClick={closeModal} disabled={saving} className="border border-slate-200">Cancel</Button>
+              <Button disabled={saving} className="bg-indigo-600 text-white">{saving ? "Saving…" : modal._id ? "Save changes" : "Add category"}</Button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {deleteTarget && (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/50 p-3">
+          <div role="dialog" aria-modal="true" aria-labelledby="delete-category-title" className="w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl sm:p-7">
+            <h3 id="delete-category-title" className="text-xl font-black">Delete category?</h3>
+            <p className="mt-2 text-sm leading-6 text-slate-500">This will permanently delete “{deleteTarget.name}”. Categories attached to articles cannot be deleted.</p>
+            {deleteError && <p className="mt-4 rounded-xl bg-rose-50 p-3 text-sm text-rose-700" role="alert">{deleteError}</p>}
+            <div className="mt-6 flex justify-end gap-3">
+              <Button type="button" onClick={() => setDeleteTarget(null)} disabled={deleting} className="border border-slate-200">Cancel</Button>
+              <Button type="button" onClick={remove} disabled={deleting} className="bg-rose-600 text-white">{deleting ? "Deleting…" : "Delete category"}</Button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
