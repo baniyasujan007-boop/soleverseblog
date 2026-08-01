@@ -68,6 +68,10 @@
   display: grid;
   gap: 3px;
 }
+.admin-nav-group {
+  display: grid;
+  gap: 3px;
+}
 .admin-nav-link {
   color: #d6dde6;
   min-height: 36px;
@@ -79,6 +83,13 @@
   font-size: 14px;
   text-decoration: none;
   transition: 0.2s;
+}
+.admin-nav-group-trigger {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
 }
 .admin-nav-link:hover {
   background: #121f2c;
@@ -92,6 +103,30 @@
 .admin-nav-chevron {
   margin-left: auto;
   opacity: 0.8;
+}
+.admin-nav-submenu {
+  display: grid;
+  gap: 2px;
+  margin: 0 0 4px 17px;
+  padding-left: 12px;
+  border-left: 1px solid #20303f;
+}
+.admin-nav-sublink {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 31px;
+  padding: 7px 9px;
+  border-radius: 5px;
+  color: #9caabd;
+  font-size: 12px;
+  text-decoration: none;
+  transition: 0.2s;
+}
+.admin-nav-sublink:hover,
+.admin-nav-sublink.active {
+  color: white;
+  background: #121f2c;
 }
 .admin-profile {
   cursor: pointer;
@@ -238,6 +273,32 @@
 }
 .admin-main {
   padding: 20px 26px 30px;
+  color: #edf2f7;
+}
+.admin-main .field,
+.admin-main input:not([type="checkbox"]):not([type="radio"]):not([type="color"]),
+.admin-main select,
+.admin-main textarea {
+  color: #182535;
+  background-color: #ffffff;
+  border-color: #cbd5e1;
+}
+.admin-main .field::placeholder,
+.admin-main input::placeholder,
+.admin-main textarea::placeholder {
+  color: #64748b;
+  opacity: 1;
+}
+.admin-main input[type="checkbox"],
+.admin-main input[type="radio"] {
+  accent-color: #8d4def;
+}
+.admin-main option {
+  color: #182535;
+  background: #ffffff;
+}
+.admin-main .bg-white {
+  color: #182535;
 }
 .admin-overlay {
   position: fixed;

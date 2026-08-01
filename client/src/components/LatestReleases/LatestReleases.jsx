@@ -1,17 +1,17 @@
 import ReleaseCard from "./ReleaseCard";
 import SectionTitle from "../common/SectionTitle/SectionTitle";
 
-function LatestReleases({ releases = [] }) {
+function LatestReleases({ releases = [], settings = {} }) {
   if (!releases.length) return null;
   return (
-    <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14">
+    <section className="mx-auto max-w-[1600px] px-5 py-8 sm:px-10 sm:py-10">
       <SectionTitle
-        title="Latest Releases"
-        action="View All →"
-        to="/releases"
+        title={settings.title || "Latest Releases"}
+        action={settings.buttonText || "View All →"}
+        to={settings.buttonUrl || "/releases"}
       />
 
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5">
         {releases.map((release) => (
           <ReleaseCard
             key={release._id}

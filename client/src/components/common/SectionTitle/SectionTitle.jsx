@@ -2,13 +2,13 @@ import { Link } from "react-router-dom";
 
 function SectionTitle({ title, action, to = "#" }) {
   return (
-    <div className="flex items-center justify-between mb-8">
-      <h2 className="text-4xl font-black">{title}</h2>
+    <div className="mb-5 flex items-center justify-between border-b border-black/15 pb-4">
+      <h2 className="text-lg font-black uppercase tracking-[-.035em]">{title}</h2>
 
       {action && (
         <Link
           to={to}
-          className="text-red-600 font-semibold hover:underline"
+          className="text-xs font-semibold text-black transition hover:opacity-55"
         >
           {action}
         </Link>

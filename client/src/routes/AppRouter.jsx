@@ -73,6 +73,14 @@ function AppRouter() {
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<Dashboard />} />
             <Route path="home" element={<AdminHome />} />
+            <Route path="home/hero" element={<AdminHome activeSection="hero" />} />
+            <Route path="home/featured-news" element={<AdminHome activeSection="news" />} />
+            <Route path="home/featured-releases" element={<AdminHome activeSection="releases" />} />
+            <Route path="home/trending" element={<AdminHome activeSection="trending" />} />
+            <Route path="home/brands" element={<AdminHome activeSection="brands" />} />
+            <Route path="home/newsletter" element={<AdminHome activeSection="newsletter" />} />
+            <Route path="home/seo" element={<AdminHome activeSection="seo" />} />
+            <Route path="home/hero-slides" element={<HeroSlides />} />
             <Route path="hero-slides" element={<HeroSlides />} />
             <Route path="articles" element={<Articles />} />
             <Route path="releases" element={<AdminReleases />} />

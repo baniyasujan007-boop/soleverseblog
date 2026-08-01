@@ -5,6 +5,7 @@ import api from "../../../api/axios";
 export default function TopBar() {
   const [settings, setSettings] = useState(null);
   useEffect(() => { api.get("/cms/public/homepage").then(({ data }) => setSettings(data.data.settings.homepage.breakingNews)).catch(() => setSettings(null)); }, []);
-  if (!settings?.enabled || !settings.text) return null;
-  return <div style={{ backgroundColor: settings.backgroundColor, color: settings.textColor }} className="overflow-hidden"><div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-2 text-xs font-semibold sm:px-6"><span className="shrink-0 rounded bg-red-600 px-2 py-1 text-[10px] font-black text-white">BREAKING</span><div className="min-w-0 overflow-hidden whitespace-nowrap"><p style={{ animationDuration: `${Math.max(settings.speed || 28, 8)}s` }} className="inline-block animate-[ticker_28s_linear_infinite]">{settings.text}</p></div></div></div>;
+  const headline = settings?.headline || settings?.text;
+  if (!settings?.enabled || !headline) return null;
+  return <div style={{ backgroundColor: settings.backgroundColor || "#f4f0e8", color: settings.textColor || "#111" }} className="overflow-hidden"><div className="mx-auto flex max-w-[1600px] items-center justify-center gap-3 px-4 py-2 text-xs sm:px-10"><span className="shrink-0 rounded-full bg-black px-2 py-0.5 text-[9px] font-black text-white">{settings.badge || "NEW"}</span><a href={settings.link || "#"} className="min-w-0 overflow-hidden whitespace-nowrap"><span style={{ animationDuration: `${Math.max(settings.speed || 28, 8)}s` }} className={`inline-block ${settings.animation === "static" ? "" : "animate-[ticker_28s_linear_infinite]"}`}>{headline}&nbsp;&nbsp; →</span></a></div></div>;
 }

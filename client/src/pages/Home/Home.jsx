@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useMemo, useState } from "react";
+import { cloneElement, lazy, Suspense, useEffect, useMemo, useState } from "react";
 import api from "../../api/axios";
 const Hero = lazy(() => import("../../components/Hero/Hero"));
 const LatestNews = lazy(() => import("../../components/LatestNews/LatestNews"));
@@ -71,14 +71,15 @@ function Home() {
     trending: <Trending items={data.trending} />,
   };
   return (
-    <main className="min-h-screen bg-[#f8f8f7]">
+    <main className="min-h-screen bg-[#f7f7f5] text-[#080808]">
       <Suspense fallback={<Skeleton />}>
         {sections.map((section) => (
           <div
             key={section.id}
-            style={{ backgroundColor: section.backgroundColor || undefined }}
+            className={`${section.customClass || ""} ${section.desktopVisible === false ? "lg:hidden" : ""} ${section.tabletVisible === false ? "md:hidden lg:block" : ""} ${section.mobileVisible === false ? "hidden md:block" : ""}`}
+            style={{ backgroundColor: section.backgroundColor || undefined, backgroundImage: section.backgroundImage ? `url(${section.backgroundImage})` : undefined, padding: section.padding || undefined, margin: section.margin || undefined }}
           >
-            {modules[section.id]}
+            {modules[section.id] && cloneElement(modules[section.id], section.id === "newsletter" ? { sectionSettings: section } : { settings: { ...modules[section.id].props.settings, ...section } })}
           </div>
         ))}
       </Suspense>
