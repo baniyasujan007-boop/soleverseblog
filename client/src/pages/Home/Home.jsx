@@ -1,5 +1,5 @@
-import { cloneElement, lazy, Suspense, useEffect, useMemo, useState } from "react";
-import api from "../../api/axios";
+import { cloneElement, lazy, Suspense, useMemo } from "react";
+import { useHomepage } from "../../context/HomepageContext";
 const Hero = lazy(() => import("../../components/Hero/Hero"));
 const LatestNews = lazy(() => import("../../components/LatestNews/LatestNews"));
 const LatestReleases = lazy(
@@ -8,16 +8,29 @@ const LatestReleases = lazy(
 const TopBrands = lazy(() => import("../../components/TopBrands/TopBrands"));
 const Newsletter = lazy(() => import("../../components/Newsletter/Newsletter"));
 const Trending = lazy(() => import("../../components/Trending/Trending"));
+const FeaturedReviews = lazy(
+  () => import("../../components/FeaturedReviews/FeaturedReviews"),
+);
+const FeaturedGuides = lazy(
+  () => import("../../components/FeaturedGuides/FeaturedGuides"),
+);
+const BestDeals = lazy(() => import("../../components/BestDeals/BestDeals"));
+const ReleaseCalendar = lazy(
+  () => import("../../components/ReleaseCalendar/ReleaseCalendar"),
+);
 
 function Skeleton() {
   return (
-    <div className="mx-auto max-w-7xl px-6 py-12">
-      <div className="h-8 w-48 animate-pulse rounded bg-slate-200" />
-      <div className="mt-7 grid grid-cols-1 gap-5 md:grid-cols-4">
+    <div className="mx-auto max-w-[1600px] px-5 py-10 sm:px-10 sm:py-14">
+      <div>
+        <div className="h-3 w-24 animate-pulse rounded bg-black/10 motion-reduce:animate-none" />
+        <div className="mt-2 h-8 w-64 max-w-full animate-pulse rounded bg-black/10 motion-reduce:animate-none" />
+      </div>
+      <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {Array.from({ length: 4 }, (_, index) => (
           <div
             key={index}
-            className="h-64 animate-pulse rounded-2xl bg-slate-200"
+            className="h-64 animate-pulse rounded bg-white motion-reduce:animate-none"
           />
         ))}
       </div>
@@ -26,22 +39,7 @@ function Skeleton() {
 }
 
 function Home() {
-  const [data, setData] = useState(null);
-  useEffect(() => {
-    api
-      .get("/cms/public/homepage")
-      .then(({ data: response }) => setData(response.data))
-      .catch(() =>
-        setData({
-          settings: { homepage: { sections: [] } },
-          heroSlides: [],
-          latestNews: [],
-          releases: [],
-          brands: [],
-          trending: [],
-        }),
-      );
-  }, []);
+  const { data, error, loading, refetch } = useHomepage();
   const sections = useMemo(
     () =>
       (data?.settings?.homepage?.sections || [])
@@ -49,11 +47,29 @@ function Home() {
         .sort((a, b) => a.order - b.order),
     [data],
   );
-  if (!data)
+  if (loading)
     return (
-      <main className="min-h-screen bg-white text-slate-900">
+      <main className="min-h-screen bg-[#f7f7f5] text-[#080808]">
         {" "}
         <Skeleton />
+      </main>
+    );
+  if (error)
+    return (
+      <main className="min-h-screen bg-[#f7f7f5] text-[#080808]">
+        <div className="mx-auto max-w-7xl px-6 py-24 text-center">
+          <p className="text-lg font-black">We couldn't load the homepage.</p>
+          <p className="mt-2 text-sm text-black/55">
+            Please check your connection and try again.
+          </p>
+          <button
+            type="button"
+            onClick={refetch}
+            className="mt-7 inline-flex bg-[#080808] px-5 py-3 text-xs font-black uppercase tracking-wide text-white transition hover:bg-black/80"
+          >
+            Try again
+          </button>
+        </div>
       </main>
     );
   const modules = {
@@ -66,9 +82,37 @@ function Home() {
     ),
     latestNews: <LatestNews articles={data.latestNews} />,
     latestReleases: <LatestReleases releases={data.releases} />,
-    topBrands: <TopBrands brands={data.brands} />,
-    newsletter: <Newsletter settings={data.settings.homepage.newsletter} />,
+    reviews: (
+      <FeaturedReviews
+        reviews={data.reviews}
+        loading={loading}
+        settings={{ buttonUrl: "/reviews" }}
+      />
+    ),
     trending: <Trending items={data.trending} />,
+    topBrands: <TopBrands brands={data.brands} />,
+    guides: (
+      <FeaturedGuides
+        guides={data.guides}
+        loading={loading}
+        settings={{ buttonUrl: "/guides" }}
+      />
+    ),
+    deals: (
+      <BestDeals
+        deals={data.deals}
+        loading={loading}
+        settings={{ buttonUrl: "/deals" }}
+      />
+    ),
+    calendar: (
+      <ReleaseCalendar
+        releases={data.calendar}
+        loading={loading}
+        settings={{ buttonUrl: "/calendar" }}
+      />
+    ),
+    newsletter: <Newsletter settings={data.settings.homepage.newsletter} />,
   };
   return (
     <main className="min-h-screen bg-[#f7f7f5] text-[#080808]">

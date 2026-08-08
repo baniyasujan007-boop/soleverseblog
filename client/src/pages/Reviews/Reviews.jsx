@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { FiArrowLeft, FiArrowRight, FiX } from "react-icons/fi";
 import api from "../../api/axios";
+import { useHomepage } from "../../context/HomepageContext";
 import ReviewCard from "../../components/Reviews/ReviewCard";
 import ReviewHero from "../../components/Reviews/ReviewHero";
 import ReviewFilters from "../../components/Reviews/ReviewFilters";
@@ -19,13 +20,14 @@ const GRID_CLASSES = "grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3";
 const PAGE_SIZE = 12;
 
 function Reviews() {
+  const { data: homepage } = useHomepage();
+  const newsletterSettings = homepage?.settings?.homepage?.newsletter || {};
   const [heroReview, setHeroReview] = useState(null);
   const [heroLoading, setHeroLoading] = useState(true);
   const [allReviews, setAllReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [reloadKey, setReloadKey] = useState(0);
-  const [newsletterSettings, setNewsletterSettings] = useState({});
 
   const [search, setSearch] = useState("");
   const [brand, setBrand] = useState("");
@@ -45,12 +47,6 @@ function Reviews() {
       )
       .catch(() => setHeroReview(null))
       .finally(() => setHeroLoading(false));
-    api
-      .get("/cms/public/homepage")
-      .then(({ data }) =>
-        setNewsletterSettings(data.data.settings?.homepage?.newsletter || {}),
-      )
-      .catch(() => setNewsletterSettings({}));
     return () => controller.abort();
   }, []);
 

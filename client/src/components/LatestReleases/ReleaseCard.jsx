@@ -96,9 +96,11 @@ function ReleaseCard({ release, variant = "compact" }) {
       <Card className="h-full overflow-hidden rounded border border-black/10 bg-white shadow-none transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
         <div className="flex flex-col h-full">
           <img
-            src={release.image}
+            src={optimizeImage(release.image, 500)}
             alt={release.name}
-            loading="lazy" className="h-28 w-full object-contain p-2 sm:h-36"
+            loading="lazy"
+            decoding="async"
+            className="h-28 w-full object-contain p-2 sm:h-36"
           />
 
           <div className="flex flex-col flex-1 p-3 pt-1 sm:p-4 sm:pt-1">

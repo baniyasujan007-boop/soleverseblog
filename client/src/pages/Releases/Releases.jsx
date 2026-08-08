@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { FiArrowLeft, FiArrowRight, FiSearch, FiX } from "react-icons/fi";
 import api from "../../api/axios";
+import { useHomepage } from "../../context/HomepageContext";
 import ReleaseCard from "../../components/LatestReleases/ReleaseCard";
 import ReleaseHero from "../../components/Releases/ReleaseHero";
 import Newsletter from "../../components/Newsletter/Newsletter";
@@ -17,6 +18,8 @@ const SORT_OPTIONS = [
 const GRID_CLASSES = "grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3";
 
 function Releases() {
+  const { data: homepage } = useHomepage();
+  const newsletterSettings = homepage?.settings?.homepage?.newsletter || {};
   const [items, setItems] = useState([]);
   const [meta, setMeta] = useState({ page: 1, totalPages: 1, total: 0 });
   const [search, setSearch] = useState("");
@@ -27,7 +30,6 @@ function Releases() {
   const [error, setError] = useState("");
   const [heroRelease, setHeroRelease] = useState(null);
   const [heroLoading, setHeroLoading] = useState(true);
-  const [newsletterSettings, setNewsletterSettings] = useState({});
 
   useEffect(() => {
     const controller = new AbortController();
@@ -41,12 +43,6 @@ function Releases() {
       )
       .catch(() => setHeroRelease(null))
       .finally(() => setHeroLoading(false));
-    api
-      .get("/cms/public/homepage")
-      .then(({ data }) =>
-        setNewsletterSettings(data.data.settings?.homepage?.newsletter || {}),
-      )
-      .catch(() => setNewsletterSettings({}));
     return () => controller.abort();
   }, []);
 

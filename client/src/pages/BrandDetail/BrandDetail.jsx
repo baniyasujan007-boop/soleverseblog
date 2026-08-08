@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { FiArrowLeft } from "react-icons/fi";
 import api from "../../api/axios";
+import { useHomepage } from "../../context/HomepageContext";
 import BrandHero from "../../components/Brands/BrandHero";
 import ReleaseCard from "../../components/LatestReleases/ReleaseCard";
 import ReviewCard from "../../components/Reviews/ReviewCard";
@@ -77,7 +78,8 @@ function BrandDetail() {
   const [guides, setGuides] = useState([]);
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [newsletterSettings, setNewsletterSettings] = useState({});
+  const { data: homepage } = useHomepage();
+  const newsletterSettings = homepage?.settings?.homepage?.newsletter || {};
 
   useEffect(() => {
     const controller = new AbortController();
@@ -85,12 +87,6 @@ function BrandDetail() {
       .get(`/content/public/brand/${id}`, { signal: controller.signal })
       .then(({ data }) => setBrand(normalizeBrand(data.data)))
       .catch(() => setError("Brand not found"));
-    api
-      .get("/cms/public/homepage", { signal: controller.signal })
-      .then(({ data }) =>
-        setNewsletterSettings(data.data.settings?.homepage?.newsletter || {}),
-      )
-      .catch(() => setNewsletterSettings({}));
     return () => controller.abort();
   }, [id]);
 

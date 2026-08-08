@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { FiArrowLeft, FiCheck, FiCopy, FiExternalLink } from "react-icons/fi";
 import api from "../../api/axios";
+import { useHomepage } from "../../context/HomepageContext";
 import DealCard from "../../components/Deals/DealCard";
 import ReleaseCard from "../../components/LatestReleases/ReleaseCard";
 import ReviewCard from "../../components/Reviews/ReviewCard";
@@ -39,7 +40,8 @@ function DealDetail() {
   const [relatedDeals, setRelatedDeals] = useState([]);
   const [relatedBrand, setRelatedBrand] = useState(null);
   const [relatedLoading, setRelatedLoading] = useState(true);
-  const [newsletterSettings, setNewsletterSettings] = useState({});
+  const { data: homepage } = useHomepage();
+  const newsletterSettings = homepage?.settings?.homepage?.newsletter || {};
 
   useEffect(() => {
     const controller = new AbortController();
@@ -62,12 +64,6 @@ function DealDetail() {
         }
         setLoadError("Unable to load this deal right now.");
       });
-    api
-      .get("/cms/public/homepage", { signal: controller.signal })
-      .then(({ data }) =>
-        setNewsletterSettings(data.data.settings?.homepage?.newsletter || {}),
-      )
-      .catch(() => setNewsletterSettings({}));
     return () => controller.abort();
   }, [id, reloadKey]);
 

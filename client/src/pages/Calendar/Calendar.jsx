@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import api from "../../api/axios";
+import { useHomepage } from "../../context/HomepageContext";
 import CalendarHero from "../../components/Calendar/CalendarHero";
 import CalendarIndex from "../../components/Calendar/CalendarIndex";
 import Newsletter from "../../components/Newsletter/Newsletter";
@@ -9,11 +10,12 @@ import {
 } from "../../utils/calendar";
 
 function Calendar() {
+  const { data: homepage } = useHomepage();
+  const newsletterSettings = homepage?.settings?.homepage?.newsletter || {};
   const [releases, setReleases] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [reloadKey, setReloadKey] = useState(0);
-  const [newsletterSettings, setNewsletterSettings] = useState({});
 
   useEffect(() => {
     document.title = "Release Calendar — SoleVerse";
@@ -40,13 +42,6 @@ function Calendar() {
         if (!controller.signal.aborted) setLoading(false);
       }
     }, 250);
-
-    api
-      .get("/cms/public/homepage", { signal: controller.signal })
-      .then(({ data }) =>
-        setNewsletterSettings(data.data.settings?.homepage?.newsletter || {}),
-      )
-      .catch(() => setNewsletterSettings({}));
 
     return () => {
       clearTimeout(timer);

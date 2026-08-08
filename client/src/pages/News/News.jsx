@@ -13,6 +13,7 @@ import Newsletter from "../../components/Newsletter/Newsletter";
 import Card from "../../components/common/Card/Card";
 import SectionTitle from "../../components/common/SectionTitle/SectionTitle";
 import api from "../../api/axios";
+import { useHomepage } from "../../context/HomepageContext";
 
 const formatDate = (date) =>
   new Date(date).toLocaleDateString("en-US", {
@@ -100,20 +101,14 @@ function SidebarStory({ article, index }) {
 }
 
 export default function News() {
+  const { data: homepage } = useHomepage();
+  const newsletterSettings = homepage?.settings?.homepage?.newsletter || {};
   const [articles, setArticles] = useState([]);
-  const [newsletterSettings, setNewsletterSettings] = useState({});
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [meta, setMeta] = useState({ totalPages: 1 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
-  useEffect(() => {
-    api
-      .get("/cms/public/homepage")
-      .then(({ data }) => setNewsletterSettings(data.data.settings?.homepage?.newsletter || {}))
-      .catch(() => setNewsletterSettings({}));
-  }, []);
 
   useEffect(() => {
     const controller = new AbortController();

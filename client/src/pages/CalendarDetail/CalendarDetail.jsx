@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { FiArrowLeft, FiArrowRight, FiCalendar, FiExternalLink } from "react-icons/fi";
 import api from "../../api/axios";
+import { useHomepage } from "../../context/HomepageContext";
 import ReleaseCard from "../../components/LatestReleases/ReleaseCard";
 import ReviewCard from "../../components/Reviews/ReviewCard";
 import GuideCard from "../../components/Guides/GuideCard";
@@ -40,6 +41,8 @@ const formatDate = (value) => {
 
 function CalendarDetail() {
   const { id } = useParams();
+  const { data: homepage } = useHomepage();
+  const newsletterSettings = homepage?.settings?.homepage?.newsletter || {};
   const [release, setRelease] = useState(null);
   const [error, setError] = useState("");
   const [loadError, setLoadError] = useState("");
@@ -50,7 +53,6 @@ function CalendarDetail() {
   const [relatedDeals, setRelatedDeals] = useState([]);
   const [relatedBrand, setRelatedBrand] = useState(null);
   const [relatedLoading, setRelatedLoading] = useState(true);
-  const [newsletterSettings, setNewsletterSettings] = useState({});
 
   useEffect(() => {
     const controller = new AbortController();
@@ -73,12 +75,6 @@ function CalendarDetail() {
         }
         setLoadError("Unable to load this release right now.");
       });
-    api
-      .get("/cms/public/homepage", { signal: controller.signal })
-      .then(({ data }) =>
-        setNewsletterSettings(data.data.settings?.homepage?.newsletter || {}),
-      )
-      .catch(() => setNewsletterSettings({}));
     return () => controller.abort();
   }, [id, reloadKey]);
 

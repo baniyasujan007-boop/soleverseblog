@@ -1,38 +1,29 @@
-.topbar {
-  background: #f5f5f5;
-  color: #111;
-  height: 40px;
-
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
-  font-size: 14px;
+@keyframes ticker {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(-100%);
+  }
 }
 
-.topbar-container {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+.topbar-track {
+  display: inline-block;
+  white-space: nowrap;
+  will-change: transform;
 }
 
-.topbar-badge {
-  background: #111;
-  color: white;
-
-  padding: 3px 10px;    
-
-  border-radius: 50px;
-
-  font-size: 11px;
-
-  font-weight: 700;
+.topbar-track-animate {
+  animation: ticker 28s linear infinite;
 }
 
-.topbar-text {
-  font-weight: 500;
+.topbar-link:hover .topbar-track-animate,
+.topbar-link:focus-visible .topbar-track-animate {
+  animation-play-state: paused;
 }
 
-.topbar-arrow {
-  font-size: 18px;
+@media (prefers-reduced-motion: reduce) {
+  .topbar-track-animate {
+    animation: none;
+  }
 }

@@ -8,14 +8,27 @@ const defaults = [
   "hero",
   "latestNews",
   "latestReleases",
-  "topBrands",
-  "newsletter",
+  "reviews",
   "trending",
+  "topBrands",
+  "guides",
+  "deals",
+  "calendar",
+  "newsletter",
 ].map((id, order) => ({
   id,
   enabled: true,
   order,
-  limit: id === "latestNews" ? 4 : id === "trending" ? 5 : 6,
+  limit:
+    id === "latestNews"
+      ? 4
+      : id === "trending"
+        ? 5
+        : id === "deals"
+          ? 4
+          : id === "reviews" || id === "guides" || id === "calendar"
+            ? 3
+            : 6,
   desktopVisible: true,
   tabletVisible: true,
   mobileVisible: true,
@@ -24,7 +37,11 @@ const names = {
   hero: "Hero slider",
   latestNews: "Latest news",
   latestReleases: "Latest releases",
+  reviews: "Featured Reviews",
   topBrands: "Top brands",
+  guides: "Buying Guides",
+  deals: "Best Deals",
+  calendar: "Release Calendar",
   newsletter: "Newsletter",
   trending: "Trending",
 };

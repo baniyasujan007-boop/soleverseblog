@@ -29,17 +29,26 @@ export const createSubscriber = async (req, res) => { const subscriber = await S
 export const updateSubscriber = async (req, res) => { const subscriber = await Subscriber.findByIdAndUpdate(req.params.id, { status: req.body.status, name: req.body.name }, { new: true, runValidators: true }); if (!subscriber) return res.status(404).json({ success: false, message: "Subscriber not found" }); res.json({ success: true, data: subscriber }); };
 export const deleteSubscriber = async (req, res) => { const subscriber = await Subscriber.findByIdAndDelete(req.params.id); if (!subscriber) return res.status(404).json({ success: false, message: "Subscriber not found" }); res.json({ success: true, message: "Subscriber deleted" }); };
 
-export const getSettings = async (_req, res) => { const settings = await SiteSettings.findOneAndUpdate({ key: "site" }, {}, { new: true, upsert: true, setDefaultsOnInsert: true }); res.json({ success: true, data: settings }); };
+export const getSettings = async (_req, res) => { const settings = await SiteSettings.findOneAndUpdate({ key: "site" }, {}, { new: true, upsert: true, setDefaultsOnInsert: true }); const data = settings.toObject(); if (data.homepage?.sections?.length) data.homepage.sections = mergeHomeSections(data.homepage.sections); res.json({ success: true, data }); };
 export const updateSettings = async (req, res) => { const update = { siteName: req.body.siteName, footerText: req.body.footerText, seo: objectValue(req.body.seo), social: objectValue(req.body.social) }; if (req.body.homepage !== undefined) update.homepage = objectValue(req.body.homepage); if (req.file) { const existing = await SiteSettings.findOne({ key: "site" }); const asset = await uploadBuffer(req.file.buffer, "soleverse/settings"); if (existing?.logoPublicId) await removeAsset(existing.logoPublicId); update.logo = asset.secure_url; update.logoPublicId = asset.public_id; } const settings = await SiteSettings.findOneAndUpdate({ key: "site" }, update, { new: true, upsert: true, setDefaultsOnInsert: true }); res.json({ success: true, data: settings }); };
 
-const defaultSections = ["hero", "latestNews", "latestReleases", "topBrands", "newsletter", "trending"].map((id, order) => ({ id, enabled: true, order, limit: id === "trending" ? 5 : id === "latestNews" ? 4 : 6 }));
+const defaultSections = ["hero", "latestNews", "latestReleases", "reviews", "trending", "topBrands", "guides", "deals", "calendar", "newsletter"].map((id, order) => ({ id, enabled: true, order, limit: id === "trending" ? 5 : id === "latestNews" ? 4 : id === "deals" ? 4 : id === "reviews" || id === "guides" || id === "calendar" ? 3 : 6 }));
+const HOME_RAIL_IDS = ["reviews", "guides", "deals", "calendar"];
+const mergeHomeSections = (saved) => {
+  if (!saved?.length) return defaultSections;
+  const existing = new Set(saved.map((section) => section.id));
+  const additions = defaultSections.filter(
+    (section) => HOME_RAIL_IDS.includes(section.id) && !existing.has(section.id),
+  );
+  return additions.length ? [...saved, ...additions] : saved;
+};
 const defaultNavigation = [
   ["Home", "/"], ["News", "/news"], ["Releases", "/releases"], ["Reviews", "/reviews"],
   ["Brands", "/brands"], ["Guides", "/guides"], ["Deals", "/deals"], ["Calendar", "/calendar"],
 ].map(([label, path], order) => ({ label, path, enabled: true, order }));
 export const getHomepage = async (_req, res) => {
   const settings = await SiteSettings.findOneAndUpdate({ key: "site" }, {}, { new: true, upsert: true, setDefaultsOnInsert: true }).lean();
-  const homepage = settings.homepage || {}; const sections = homepage.sections?.length ? homepage.sections : defaultSections;
+  const homepage = settings.homepage || {}; const sections = mergeHomeSections(homepage.sections);
   const navigation = homepage.navigation?.items?.length ? homepage.navigation : { items: defaultNavigation };
   const limitFor = (id, fallback) => sections.find((section) => section.id === id)?.limit || fallback;
   const [heroSlides, latestNews, releases, brands] = await Promise.all([
@@ -52,6 +61,15 @@ export const getHomepage = async (_req, res) => {
   ]);
   const trendingQuery = homepage.trending?.mode === "manual" && homepage.trending?.manualIds?.length ? { _id: { $in: homepage.trending.manualIds }, status: "published" } : { status: "published" };
   const trending = await Article.find(trendingQuery).sort(homepage.trending?.mode === "manual" ? { createdAt: -1 } : { views: -1, createdAt: -1 }).limit(limitFor("trending", 5)).populate("author", "name").lean();
-  res.json({ success: true, data: { settings: { ...settings, homepage: { ...homepage, navigation, sections } }, heroSlides, latestNews, releases, brands, trending } });
+  const startOfToday = new Date(); startOfToday.setHours(0, 0, 0, 0);
+  const isoToday = startOfToday.toISOString();
+  const railResults = await Promise.allSettled([
+    ContentItem.find({ type: "review", status: "published" }).sort({ featured: -1, createdAt: -1 }).limit(6).populate("author", "name").lean(),
+    ContentItem.find({ type: "guide", status: "published" }).sort({ featured: -1, createdAt: -1 }).limit(6).populate("author", "name").lean(),
+    ContentItem.find({ type: "deal", status: "published", $or: [{ "metadata.expirationDate": { $gte: isoToday } }, { "metadata.expirationDate": { $exists: false } }] }).sort({ featured: -1, createdAt: -1 }).limit(6).lean(),
+    ContentItem.find({ type: "calendar", status: "published", "metadata.releaseDate": { $gte: isoToday } }).sort({ "metadata.releaseDate": 1 }).limit(6).lean(),
+  ]);
+  const [reviews, guides, deals, calendar] = railResults.map((result) => (result.status === "fulfilled" ? result.value : []));
+  res.json({ success: true, data: { settings: { ...settings, homepage: { ...homepage, navigation, sections } }, heroSlides, latestNews, releases, brands, trending, reviews, guides, deals, calendar } });
 };
 export const subscribePublic = async (req, res) => { const email = req.body.email?.trim().toLowerCase(); if (!email) return res.status(400).json({ success: false, message: "Email is required" }); const subscriber = await Subscriber.findOneAndUpdate({ email }, { email, name: req.body.name || "", status: "subscribed" }, { upsert: true, new: true, setDefaultsOnInsert: true }); res.status(201).json({ success: true, data: subscriber }); };

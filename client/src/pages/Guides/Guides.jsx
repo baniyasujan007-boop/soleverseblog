@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import api from "../../api/axios";
+import { useHomepage } from "../../context/HomepageContext";
 import GuideHero from "../../components/Guides/GuideHero";
 import GuideIndex from "../../components/Guides/GuideIndex";
 import GuideCard from "../../components/Guides/GuideCard";
@@ -7,13 +8,14 @@ import Newsletter from "../../components/Newsletter/Newsletter";
 import { normalizeGuide } from "../../utils/guide";
 
 function Guides() {
+  const { data: homepage } = useHomepage();
+  const newsletterSettings = homepage?.settings?.homepage?.newsletter || {};
   const [heroGuide, setHeroGuide] = useState(null);
   const [heroLoading, setHeroLoading] = useState(true);
   const [guides, setGuides] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [reloadKey, setReloadKey] = useState(0);
-  const [newsletterSettings, setNewsletterSettings] = useState({});
 
   useEffect(() => {
     document.title = "Sneaker Guides — SoleVerse";
@@ -39,12 +41,6 @@ function Guides() {
       .finally(() => {
         if (!controller.signal.aborted) setHeroLoading(false);
       });
-    api
-      .get("/cms/public/homepage", { signal: controller.signal })
-      .then(({ data }) =>
-        setNewsletterSettings(data.data.settings?.homepage?.newsletter || {}),
-      )
-      .catch(() => setNewsletterSettings({}));
     return () => controller.abort();
   }, []);
 

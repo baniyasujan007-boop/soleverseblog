@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "nodemon server.js",
     "start": "node server.js",
-    "seed:categories": "node scripts/seedCategories.js"
+    "seed:categories": "node scripts/seedCategories.js",
+    "seed:demo": "node scripts/seedDemo.js",
+    "seed:demo:clear": "node scripts/seedDemo.js --clear"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

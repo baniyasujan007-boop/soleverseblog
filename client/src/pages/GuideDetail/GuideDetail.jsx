@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { FiArrowLeft } from "react-icons/fi";
 import api from "../../api/axios";
+import { useHomepage } from "../../context/HomepageContext";
 import GuideCard from "../../components/Guides/GuideCard";
 import GuideContent from "../../components/Guides/GuideContent";
 import ReleaseCard from "../../components/LatestReleases/ReleaseCard";
@@ -41,7 +42,8 @@ function GuideDetail() {
   const [relatedBrand, setRelatedBrand] = useState(null);
   const [articles, setArticles] = useState([]);
   const [relatedLoading, setRelatedLoading] = useState(true);
-  const [newsletterSettings, setNewsletterSettings] = useState({});
+  const { data: homepage } = useHomepage();
+  const newsletterSettings = homepage?.settings?.homepage?.newsletter || {};
 
   useEffect(() => {
     const controller = new AbortController();
@@ -64,12 +66,6 @@ function GuideDetail() {
         }
         setLoadError("Unable to load this guide right now.");
       });
-    api
-      .get("/cms/public/homepage", { signal: controller.signal })
-      .then(({ data }) =>
-        setNewsletterSettings(data.data.settings?.homepage?.newsletter || {}),
-      )
-      .catch(() => setNewsletterSettings({}));
     return () => controller.abort();
   }, [id, reloadKey]);
 

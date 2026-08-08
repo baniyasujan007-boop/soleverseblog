@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import api from "../../api/axios";
+import { useHomepage } from "../../context/HomepageContext";
 import BrandHero from "../../components/Brands/BrandHero";
 import BrandIndex from "../../components/Brands/BrandIndex";
 import ReleaseCard from "../../components/LatestReleases/ReleaseCard";
@@ -50,6 +51,8 @@ function BrandRail({ title, kicker, children, loading, error, onRetry, grid }) {
 }
 
 function Brands() {
+  const { data: homepage } = useHomepage();
+  const newsletterSettings = homepage?.settings?.homepage?.newsletter || {};
   const [heroBrand, setHeroBrand] = useState(null);
   const [heroLoading, setHeroLoading] = useState(true);
   const [brands, setBrands] = useState([]);
@@ -59,7 +62,6 @@ function Brands() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [reloadKey, setReloadKey] = useState(0);
-  const [newsletterSettings, setNewsletterSettings] = useState({});
 
   useEffect(() => {
     const controller = new AbortController();
@@ -73,12 +75,6 @@ function Brands() {
       )
       .catch(() => setHeroBrand(null))
       .finally(() => setHeroLoading(false));
-    api
-      .get("/cms/public/homepage", { signal: controller.signal })
-      .then(({ data }) =>
-        setNewsletterSettings(data.data.settings?.homepage?.newsletter || {}),
-      )
-      .catch(() => setNewsletterSettings({}));
     return () => controller.abort();
   }, []);
 

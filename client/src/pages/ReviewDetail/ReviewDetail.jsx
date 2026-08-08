@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { FiArrowLeft, FiCheck, FiMinus } from "react-icons/fi";
 import api from "../../api/axios";
+import { useHomepage } from "../../context/HomepageContext";
 import ReviewCard from "../../components/Reviews/ReviewCard";
 import ReviewScoreBars from "../../components/Reviews/ReviewScoreBars";
 import Newsletter from "../../components/Newsletter/Newsletter";
@@ -28,7 +29,8 @@ function ReviewDetail() {
   const [reloadKey, setReloadKey] = useState(0);
   const [related, setRelated] = useState([]);
   const [relatedLoading, setRelatedLoading] = useState(true);
-  const [newsletterSettings, setNewsletterSettings] = useState({});
+  const { data: homepage } = useHomepage();
+  const newsletterSettings = homepage?.settings?.homepage?.newsletter || {};
 
   useEffect(() => {
     const controller = new AbortController();
@@ -51,12 +53,6 @@ function ReviewDetail() {
         }
         setLoadError("Unable to load this review right now.");
       });
-    api
-      .get("/cms/public/homepage", { signal: controller.signal })
-      .then(({ data }) =>
-        setNewsletterSettings(data.data.settings?.homepage?.newsletter || {}),
-      )
-      .catch(() => setNewsletterSettings({}));
     return () => controller.abort();
   }, [id, reloadKey]);
 

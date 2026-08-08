@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import api from "../../api/axios";
+import { useHomepage } from "../../context/HomepageContext";
 import DealHero from "../../components/Deals/DealHero";
 import DealIndex from "../../components/Deals/DealIndex";
 import DealCard from "../../components/Deals/DealCard";
@@ -10,13 +11,14 @@ import {
 } from "../../utils/deal";
 
 function Deals() {
+  const { data: homepage } = useHomepage();
+  const newsletterSettings = homepage?.settings?.homepage?.newsletter || {};
   const [heroDeal, setHeroDeal] = useState(null);
   const [heroLoading, setHeroLoading] = useState(true);
   const [deals, setDeals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [reloadKey, setReloadKey] = useState(0);
-  const [newsletterSettings, setNewsletterSettings] = useState({});
 
   useEffect(() => {
     document.title = "Sneaker Deals — SoleVerse";
@@ -42,12 +44,6 @@ function Deals() {
       .finally(() => {
         if (!controller.signal.aborted) setHeroLoading(false);
       });
-    api
-      .get("/cms/public/homepage", { signal: controller.signal })
-      .then(({ data }) =>
-        setNewsletterSettings(data.data.settings?.homepage?.newsletter || {}),
-      )
-      .catch(() => setNewsletterSettings({}));
     return () => controller.abort();
   }, []);
 
