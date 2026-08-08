@@ -27,11 +27,12 @@ const links = [
   ["/admin/releases", "Releases", FiTruck],
   ["/admin/reviews", "Reviews", FiStar],
   ["/admin/guides", "Buying Guides", FiBookOpen],
+  ["/admin/deals", "Deals", FiTag],
+  ["/admin/calendar", "Release Calendar", FiCalendar],
   ["/admin/media", "Media Library", FiImage],
   ["/admin/brands", "Brands", FiShoppingBag],
   ["/admin/users", "Users", FiUsers],
   ["/admin/newsletter", "Newsletter", FiBell],
-  ["/admin/calendar", "Analytics", FiCalendar],
   ["/admin/categories", "Categories", FiTag],
   ["/admin/settings", "Settings", FiSettings],
 ];
