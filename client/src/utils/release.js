@@ -11,18 +11,41 @@ export const formatPrice = (value) => {
   return text.startsWith("$") ? text : `$${text}`;
 };
 
+const toNumber = (value) => {
+  if (value === undefined || value === null || value === "") return null;
+  const number = Number(value);
+  return Number.isFinite(number) ? number : null;
+};
+
 export const normalizeRelease = (item = {}) => {
   const metadata = item.metadata || {};
+  const retailPrice = toNumber(metadata.retailPrice ?? metadata.price);
   return {
     id: item._id,
     slug: item.slug,
     name: item.title,
     image: item.image,
     summary: item.summary,
+    content: item.content,
+    featured: Boolean(item.featured),
+    category: item.category,
     brand: metadata.brand || item.category || "SoleVerse",
+    model: metadata.model,
+    colorway: metadata.colorway,
+    sku: metadata.sku || metadata.styleCode,
+    styleCode: metadata.styleCode,
+    releaseType: metadata.releaseType,
+    availability: metadata.availability,
+    region: metadata.region,
+    currency: metadata.currency || "USD",
+    retailPrice,
     price: formatPrice(metadata.retailPrice ?? metadata.price),
     releaseDate: metadata.releaseDate,
-    region: metadata.region,
-    colorway: metadata.colorway,
+    designer: metadata.designer,
+    materials: metadata.materials,
+    technology: metadata.technology,
+    sizes: metadata.sizes,
+    metaTitle: metadata.metaTitle,
+    metaDescription: metadata.metaDescription,
   };
 };

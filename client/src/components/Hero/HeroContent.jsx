@@ -1,4 +1,5 @@
 import HeroButtons from "./HeroButtons";
+import HeroImage from "./HeroImage";
 
 const formatDate = (value) => {
   if (!value) return null;
@@ -18,7 +19,7 @@ const formatPrice = (value) => {
     : String(value);
 };
 
-function HeroContent({ hero, settings = {} }) {
+function HeroContent({ hero, settings = {}, imagePriority = false }) {
   const details = hero?.metadata || {};
   const summary = hero?.summary || hero?.content;
   const releaseDate = formatDate(details.releaseDate);
@@ -30,26 +31,34 @@ function HeroContent({ hero, settings = {} }) {
   ].filter(Boolean);
 
   return (
-    <div className="hero-text-col min-w-0">
-      <p className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.32em] text-[#eee0c9]">
-        <span className="h-px w-8 bg-[#eee0c9]" aria-hidden="true" />
-        {hero?.category || "Featured release"}
-      </p>
-
-      <h1 className="mt-6 text-5xl font-black leading-[0.95] tracking-[-0.05em] sm:text-6xl xl:text-7xl">
-        {hero?.title}
-      </h1>
-
-      {summary && (
-        <p className="mt-5 max-w-md text-[15px] leading-6 text-white/70">
-          {summary}
+    <div className="grid min-w-0 gap-10 md:grid-cols-[minmax(0,1fr)_minmax(0,42%)] md:items-center">
+      <div className="hero-text-col min-w-0 md:col-start-1 md:row-start-1">
+        <p className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.32em] text-[#eee0c9]">
+          <span className="h-px w-8 bg-[#eee0c9]" aria-hidden="true" />
+          {hero?.category || "Featured release"}
         </p>
-      )}
 
-      <HeroButtons hero={hero} settings={settings} />
+        <h1 className="mt-6 text-5xl font-black leading-[0.95] tracking-[-0.05em] sm:text-6xl xl:text-7xl">
+          {hero?.title}
+        </h1>
+
+        {summary && (
+          <p className="mt-5 max-w-md text-[15px] leading-6 text-white/70">
+            {summary}
+          </p>
+        )}
+      </div>
+
+      <div className="min-w-0 md:col-start-2 md:row-start-1 md:row-span-3">
+        <HeroImage hero={hero} priority={imagePriority} />
+      </div>
+
+      <div className="hero-text-col min-w-0 md:col-start-1 md:row-start-2">
+        <HeroButtons hero={hero} settings={settings} />
+      </div>
 
       {meta.length > 0 && (
-        <dl className="mt-8 flex flex-wrap gap-x-8 gap-y-4 border-t border-white/10 pt-5">
+        <dl className="hero-text-col min-w-0 mt-8 flex flex-wrap gap-x-8 gap-y-4 border-t border-white/10 pt-5 md:col-start-1 md:row-start-3 md:mt-0">
           {meta.map((item) => (
             <div key={item.label} className="min-w-0">
               <dt className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/40">

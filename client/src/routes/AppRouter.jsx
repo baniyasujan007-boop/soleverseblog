@@ -10,7 +10,6 @@ import Signup from "../pages/Signup/Signup";
 import About from "../pages/About/About";
 import Contact from "../pages/Contact/Contact";
 import NotFound from "../pages/NotFound/NotFound";
-import Article from "../pages/Article/Article";
 import PublicProfile from "../pages/Profile/Profile";
 import Search from "../pages/Search/Search";
 import ContentDetail from "../pages/ContentDetail/ContentDetail";
@@ -37,6 +36,8 @@ import Settings from "../admin/Settings/Settings";
 import HeroSlides from "../admin/HeroSlides/HeroSlides";
 
 const Releases = lazy(() => import("../pages/Releases/Releases"));
+const ReleaseDetail = lazy(() => import("../pages/ReleaseDetail/ReleaseDetail"));
+const ArticleDetail = lazy(() => import("../pages/ArticleDetail/ArticleDetail"));
 const Reviews = lazy(() => import("../pages/Reviews/Reviews"));
 const ReviewDetail = lazy(() => import("../pages/ReviewDetail/ReviewDetail"));
 const Guides = lazy(() => import("../pages/Guides/Guides"));
@@ -65,8 +66,8 @@ function AppRouter() {
           <Route path="/contact" element={<Contact />} />
           <Route path="/search" element={<Search />} />
         </Route>
-     <Route path="/article/:id" element={<Article />} />
-        <Route path="/release/:id" element={<ContentDetail type="release" back="/releases" />} />
+        <Route path="/article/:id" element={<Suspense fallback={<div className="min-h-screen bg-[#f7f7f5]" aria-hidden="true" />}><ArticleDetail /></Suspense>} />
+        <Route path="/release/:id" element={<Suspense fallback={<div className="min-h-screen bg-[#f7f7f5]" aria-hidden="true" />}><ReleaseDetail /></Suspense>} />
         <Route path="/review/:id" element={<Suspense fallback={<div className="min-h-screen bg-[#f7f7f5]" aria-hidden="true" />}><ReviewDetail /></Suspense>} />
         <Route path="/brand/:id" element={<ContentDetail type="brand" back="/brands" />} />
         <Route path="/guide/:id" element={<Suspense fallback={<div className="min-h-screen bg-[#f7f7f5]" aria-hidden="true" />}><GuideDetail /></Suspense>} />

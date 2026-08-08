@@ -1,24 +1,19 @@
 [data-hero-animation] .hero-text-col {
-  animation: hero-slide-up 0.6s ease both;
+  animation: hero-editorial-text 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+[data-hero-animation] .hero-image-col {
+  animation: hero-editorial-image 1s ease-out 0.08s both;
 }
 
 [data-hero-animation="slide"] .hero-image-col {
-  animation: hero-fade-in 0.8s ease both;
+  animation-name: hero-editorial-image-slide;
 }
 
-@keyframes hero-fade-in {
+@keyframes hero-editorial-text {
   from {
     opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes hero-slide-up {
-  from {
-    opacity: 0;
-    transform: translateY(18px);
+    transform: translateY(16px);
   }
   to {
     opacity: 1;
@@ -26,8 +21,108 @@
   }
 }
 
+@keyframes hero-editorial-image {
+  from {
+    opacity: 0.4;
+    transform: scale(0.97) translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateX(0);
+  }
+}
+
+@keyframes hero-editorial-image-slide {
+  from {
+    opacity: 0.4;
+    transform: scale(0.97) translateX(48px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateX(0);
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Editorial autoplay progress bar                                     */
+/* ------------------------------------------------------------------ */
+
+.hero-progress-stitch {
+  flex-shrink: 0;
+  width: 12px;
+  height: 10px;
+  border-radius: 2px;
+  border-bottom: 1.5px solid #eee0c9;
+  background: repeating-linear-gradient(
+    to bottom,
+    #eee0c9 0 1.5px,
+    transparent 1.5px 3px
+  );
+  opacity: 0.85;
+}
+
+.hero-progress-track {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 40px;
+  max-width: 260px;
+  height: 2px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.15);
+  overflow: hidden;
+}
+
+.hero-progress-fill {
+  position: absolute;
+  inset: 0;
+  width: 0;
+  border-radius: inherit;
+  background: #eee0c9;
+  box-shadow: 0 0 8px rgba(238, 224, 201, 0.5);
+  animation: hero-progress-fill var(--hero-progress-duration, 6000ms) linear
+    forwards;
+  animation-play-state: running;
+}
+
+.hero-progress-track.is-paused .hero-progress-fill {
+  animation-play-state: paused;
+}
+
+.hero-progress-track.is-static .hero-progress-fill {
+  animation: none;
+  width: 100%;
+}
+
+.hero-progress-flag {
+  flex-shrink: 0;
+  width: 10px;
+  height: 8px;
+  border-radius: 1px;
+  background: conic-gradient(
+    #eee0c9 0 90deg,
+    transparent 90deg 180deg,
+    #eee0c9 180deg 270deg,
+    transparent 270deg 360deg
+  );
+  background-size: 4px 4px;
+  opacity: 0.9;
+}
+
+@keyframes hero-progress-fill {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   [data-hero-animation] * {
     animation: none !important;
+  }
+  .hero-progress-fill {
+    animation: none !important;
+    width: 100% !important;
   }
 }

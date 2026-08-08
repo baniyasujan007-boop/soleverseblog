@@ -1,16 +1,18 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import usePrefersReducedMotion from "../../hooks/usePrefersReducedMotion";
 import HeroContent from "./HeroContent";
-import HeroImage from "./HeroImage";
 import UpcomingReleaseSidebar from "./UpcomingReleaseSidebar";
 import "./Hero.css";
 
 function Hero({ slides = [], releases = [], settings = {} }) {
   const prefersReducedMotion = usePrefersReducedMotion();
+  const sectionRef = useRef(null);
   const [current, setCurrent] = useState(0);
   const [paused, setPaused] = useState(false);
   const count = slides.length;
+
+  const duration = Math.max(Number(settings.sliderSpeed) || 6000, 2000);
 
   const goTo = useCallback(
     (index) => {
@@ -47,10 +49,27 @@ function Hero({ slides = [], releases = [], settings = {} }) {
     if (!autoPlay || paused) return undefined;
     const timer = setInterval(
       () => setCurrent((value) => (value + 1) % count),
-      Math.max(Number(settings.sliderSpeed) || 6000, 2000),
+      duration,
     );
     return () => clearInterval(timer);
-  }, [autoPlay, paused, count, settings.sliderSpeed, current]);
+  }, [autoPlay, paused, count, duration, current]);
+
+  useEffect(() => {
+    const onVisibilityChange = () => {
+      if (document.hidden) {
+        setPaused(true);
+      } else if (
+        sectionRef.current &&
+        !sectionRef.current.matches(":hover") &&
+        !sectionRef.current.contains(document.activeElement)
+      ) {
+        setPaused(false);
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () =>
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+  }, []);
 
   if (!count) return null;
 
@@ -62,6 +81,7 @@ function Hero({ slides = [], releases = [], settings = {} }) {
 
   return (
     <section
+      ref={sectionRef}
       role="region"
       aria-roledescription="carousel"
       aria-label={settings.title || "Featured releases"}
@@ -103,43 +123,49 @@ function Hero({ slides = [], releases = [], settings = {} }) {
               role="group"
               aria-roledescription="slide"
               aria-label={active.title}
-              className="grid items-center gap-10 md:grid-cols-[minmax(0,1fr)_minmax(0,42%)]"
             >
-              <HeroContent hero={active} settings={settings} />
-              <HeroImage hero={active} priority={safeCurrent === 0} />
+              <HeroContent
+                hero={active}
+                settings={settings}
+                imagePriority={safeCurrent === 0}
+              />
             </div>
           </div>
 
           {count > 1 && (
             <div className="relative z-10 flex items-center justify-between gap-4 border-t border-white/10 px-5 py-4 sm:px-10 lg:px-12">
-              <nav aria-label="Slide navigation" className="flex items-center gap-2.5">
-                {slides.map((slide, index) => (
-                  <button
-                    key={slide._id || index}
-                    type="button"
-                    onClick={() => goTo(index)}
-                    aria-label={`Go to slide ${index + 1}`}
-                    aria-current={index === safeCurrent ? "true" : undefined}
-                    className={`h-1.5 rounded-full transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#eee0c9] ${
-                      index === safeCurrent
-                        ? "w-8 bg-[#eee0c9]"
-                        : "w-4 bg-white/25 hover:bg-white/50"
-                    }`}
-                  />
-                ))}
+              <div className="flex min-w-0 items-center gap-3 sm:gap-4">
+                <span
+                  className="hero-progress-stitch"
+                  aria-hidden="true"
+                />
+                <div
+                  key={safeCurrent}
+                  className={`hero-progress-track ${
+                    paused ? "is-paused" : ""
+                  } ${!autoPlay ? "is-static" : ""}`}
+                  style={{ "--hero-progress-duration": `${duration}ms` }}
+                >
+                  <div className="hero-progress-fill" />
+                </div>
+                <span
+                  className="hero-progress-flag"
+                  aria-hidden="true"
+                />
                 <span
                   aria-hidden="true"
-                  className="ml-3 text-[11px] font-bold tabular-nums tracking-widest text-white/45"
+                  className="text-[11px] font-bold tabular-nums tracking-widest text-white/45"
                 >
-                  {String(safeCurrent + 1).padStart(2, "0")} / {String(count).padStart(2, "0")}
+                  {String(safeCurrent + 1).padStart(2, "0")} /{" "}
+                  {String(count).padStart(2, "0")}
                 </span>
-              </nav>
-              <div className="flex gap-2">
+              </div>
+              <div className="flex shrink-0 gap-2">
                 <button
                   type="button"
                   onClick={() => goTo(safeCurrent - 1)}
                   aria-label="Previous slide"
-                  className="grid h-10 w-10 place-items-center rounded-full border border-white/20 text-white/80 transition hover:border-white hover:bg-white hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#eee0c9] focus-visible:ring-offset-2 focus-visible:ring-offset-[#050505]"
+                  className="grid h-11 w-11 place-items-center rounded-full border border-white/20 text-white/80 transition hover:border-white hover:bg-white hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#eee0c9] focus-visible:ring-offset-2 focus-visible:ring-offset-[#050505]"
                 >
                   <FiChevronLeft />
                 </button>
@@ -147,7 +173,7 @@ function Hero({ slides = [], releases = [], settings = {} }) {
                   type="button"
                   onClick={() => goTo(safeCurrent + 1)}
                   aria-label="Next slide"
-                  className="grid h-10 w-10 place-items-center rounded-full border border-white/20 text-white/80 transition hover:border-white hover:bg-white hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#eee0c9] focus-visible:ring-offset-2 focus-visible:ring-offset-[#050505]"
+                  className="grid h-11 w-11 place-items-center rounded-full border border-white/20 text-white/80 transition hover:border-white hover:bg-white hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#eee0c9] focus-visible:ring-offset-2 focus-visible:ring-offset-[#050505]"
                 >
                   <FiChevronRight />
                 </button>

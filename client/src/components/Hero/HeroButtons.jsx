@@ -7,11 +7,20 @@ function HeroButtons({ hero, settings = {} }) {
   const details = hero?.metadata || {};
   const primaryHref =
     (details.primaryCtaLink || "").trim() ||
+    (details.buttonLink || "").trim() ||
     (hero?.slug ? `/release/${hero.slug}` : "");
-  const primaryLabel = (details.primaryCtaText || "").trim() || "Explore now";
-  const secondaryHref = (details.secondaryCtaLink || "").trim() || "";
+  const primaryLabel =
+    (details.primaryCtaText || "").trim() ||
+    (details.buttonText || "").trim() ||
+    "Explore now";
+  const secondaryHref =
+    (details.secondaryCtaLink || "").trim() ||
+    (details.secondaryButtonLink || "").trim() ||
+    "";
   const secondaryLabel =
-    (details.secondaryCtaText || "").trim() || "View release info";
+    (details.secondaryCtaText || "").trim() ||
+    (details.secondaryButtonText || "").trim() ||
+    "View release info";
 
   const renderCta = ({ href, label, variant }) => {
     if (!href || !label) return null;
